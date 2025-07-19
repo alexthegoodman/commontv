@@ -1,7 +1,7 @@
 {
     "name": "CommonTV",
     "description": "A powerful multitasking multimedia experience for large screens",
-    "uuid": "alex@madebycommon.com",
+    "uuid": "commontv@madebycommon.com",
     "url": "https://github.com/alexthegoodman/commontv",
     "settings-schema": "org.gnome.shell.extensions.commontv",
     "shell-version": [
