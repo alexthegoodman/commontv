@@ -3,7 +3,10 @@ import Gio from 'gi://Gio';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import Mtk from "gi://Mtk";
+import St from 'gi://St';
+import Clutter from "gi://Clutter";
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 interface WindowState {
@@ -30,6 +33,7 @@ export default class CommonTVExtension extends Extension {
   private windowManagerConnections: number[] = [];
   private keybindingIds: string[] = [];
   private focusTimeout: number | null = null;
+  private statusButton?: PanelMenu.Button;
 
   enable() {
     this.gsettings = this.getSettings();
@@ -38,6 +42,7 @@ export default class CommonTVExtension extends Extension {
     
     this.connectSignals();
     this.setupKeybindings();
+    this.createStatusIndicator();
     this.initializeLayout();
   }
 
@@ -50,6 +55,7 @@ export default class CommonTVExtension extends Extension {
     
     this.disconnectSignals();
     this.removeKeybindings();
+    this.removeStatusIndicator();
     this.restoreAllWindows();
     this.gsettings = undefined;
     this.windowTracker = undefined;
@@ -153,6 +159,8 @@ export default class CommonTVExtension extends Extension {
     } else {
       this.addCardWindow(window);
     }
+    
+    this.updateStatusIndicator();
   }
 
 
@@ -174,9 +182,13 @@ export default class CommonTVExtension extends Extension {
     
     // Remove from cards
     this.removeFromCards(window);
+    
+    this.updateStatusIndicator();
   }
 
   private onFocusChanged() {
+    this.updateStatusIndicator();
+    
     // Add a small delay to let focus settle and prevent conflicts
     if (this.focusTimeout) {
       GLib.source_remove(this.focusTimeout);
@@ -449,5 +461,42 @@ export default class CommonTVExtension extends Extension {
         originalGeometry.height
       );
     });
+  }
+
+  private createStatusIndicator() {
+    this.statusButton = new PanelMenu.Button(0.0, 'CommonTV', false);
+    
+    const label = new St.Label({
+      text: 'CommonTV: No window',
+      style_class: 'panel-status-indicator-label',
+      y_align: Clutter.ActorAlign.CENTER
+    });
+    
+    this.statusButton.add_child(label);
+    Main.panel.addToStatusArea('commontv-indicator', this.statusButton);
+    this.updateStatusIndicator();
+  }
+
+  private updateStatusIndicator() {
+    if (!this.statusButton) return;
+    
+    const label = this.statusButton.get_child_at_index(0) as St.Label;
+    if (!label) return;
+    
+    const focusedWindow = this.display?.get_focus_window();
+    if (focusedWindow && focusedWindow.get_window_type() === Meta.WindowType.NORMAL) {
+      const title = focusedWindow.get_title() || 'Unknown';
+      const appName = this.windowTracker?.get_window_app(focusedWindow)?.get_name() || 'Unknown App';
+      label.set_text(`CommonTV: ${appName} - ${title}`);
+    } else {
+      label.set_text('CommonTV: No window');
+    }
+  }
+
+  private removeStatusIndicator() {
+    if (this.statusButton) {
+      this.statusButton.destroy();
+      this.statusButton = undefined;
+    }
   }
 }
