@@ -22,6 +22,7 @@ export default class CommonTVExtension extends Extension {
   private windowStates: Map<number, WindowState> = new Map();
   private mainWindow?: Meta.Window;
   private cardWindows: Meta.Window[] = [];
+  private isLayoutInProgress = false;
   
   // Layout constants
   private readonly CARD_HEIGHT = 180;
@@ -120,9 +121,17 @@ export default class CommonTVExtension extends Extension {
   }
 
   private redetermineLayout() {
+    if (this.isLayoutInProgress) {
+      this.logDebug(`redetermineLayout: Skipping - layout already in progress`);
+      return;
+    }
+    
+    this.isLayoutInProgress = true;
     this.logDebug(`redetermineLayout: Starting layout redetermination`);
-    // Get current windows and organize them
-    const windows = this.getAllUserWindows();
+    
+    try {
+      // Get current windows and organize them
+      const windows = this.getAllUserWindows();
     if (windows.length > 0) {
       // Use currently focused window as main, or first window if none focused
       const focusedWindow = this.display?.get_focus_window();
@@ -130,12 +139,16 @@ export default class CommonTVExtension extends Extension {
       
       this.setMainWindow(mainWindow);
       
-      // Add other windows as cards
       windows.forEach(window => {
         if (window !== mainWindow) {
-          this.addCardWindow(window);
+          this.addCardWindow(window);          
         }
       });
+
+      this.layoutCards(); // call just once now
+    }
+    } finally {
+      this.isLayoutInProgress = false;
     }
   }
 
@@ -291,7 +304,7 @@ export default class CommonTVExtension extends Extension {
 
     this.cardWindows.push(window);
     this.resizeToCard(window);
-    this.layoutCards();
+    // this.layoutCards();
   }
 
   private removeFromCards(window: Meta.Window) {
@@ -481,6 +494,7 @@ export default class CommonTVExtension extends Extension {
   }
   
   private convertWindowToCard(window: Meta.Window) {
+    this.addCardWindow(window);
     if (window === this.mainWindow) {
       // If converting main window to card, promote first card to main
       if (this.cardWindows.length > 0) {
@@ -489,7 +503,6 @@ export default class CommonTVExtension extends Extension {
         this.mainWindow = undefined;
       }
     }
-    this.addCardWindow(window);
   }
 
   private restoreAllWindows() {
