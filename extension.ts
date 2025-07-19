@@ -134,8 +134,18 @@ export default class CommonTVExtension extends Extension {
       return;
     }
     
-    // Add new windows as cards by default
-    this.addCardWindow(window);
+    // Initialize window state tracking
+    this.storeOriginalGeometry(window);
+    
+    // Check if this new window has focus or should become main window
+    const focusedWindow = this.display?.get_focus_window();
+    const shouldBeMain = (focusedWindow === window) || (!this.mainWindow);
+    
+    if (shouldBeMain) {
+      this.setMainWindow(window);
+    } else {
+      this.addCardWindow(window);
+    }
   }
 
 
