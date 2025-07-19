@@ -279,7 +279,7 @@ export default class CommonTVExtension extends Extension {
 
   private addCardWindow(window: Meta.Window) {
     this.logDebug(`addCardWindow: Adding window ${window.get_id()} as card window`);
-    // if (window === this.mainWindow) return;
+    if (window === this.mainWindow) return;
     
     // this.removeFromCards(window);
 
@@ -304,7 +304,7 @@ export default class CommonTVExtension extends Extension {
 
   private resizeToMainView(window: Meta.Window) {
     const monitor = this.display?.get_current_monitor();
-    if (!monitor) return;
+    if (monitor == null) return;
     
     const workArea = global.workspace_manager.get_active_workspace().get_work_area_for_monitor(monitor);
     
