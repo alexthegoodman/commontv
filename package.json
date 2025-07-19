@@ -1,0 +1,27 @@
+{
+  "name": "commontv",
+  "version": "0.0.0",
+  "description": "A powerful multitasking multimedia experience for large screens",
+  "type": "module",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexthegoodman/commontv.git"
+  },
+  "author": "Alex Woodman <alexthegoodman@gmail.com>",
+  "license": "LGPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/alexthegoodman/commontv/issues"
+  },
+  "homepage": "https://github.com/alexthegoodman/commontv#readme",
+  "sideEffects": false,
+  "devDependencies": {
+    "eslint": "^9.31.0",
+    "eslint-plugin-jsdoc": "^51.4.1",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@girs/gjs": "^4.0.0-beta.25",
+    "@girs/gnome-shell": "^48.0.2"
+  }
+}
