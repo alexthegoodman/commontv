@@ -279,7 +279,7 @@ export default class CommonTVExtension extends Extension {
 
   private addCardWindow(window: Meta.Window) {
     this.logDebug(`addCardWindow: Adding window ${window.get_id()} as card window`);
-    if (window === this.mainWindow) return;
+    // if (window === this.mainWindow) return;
     
     // this.removeFromCards(window);
 
