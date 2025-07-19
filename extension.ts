@@ -281,7 +281,14 @@ export default class CommonTVExtension extends Extension {
     this.logDebug(`addCardWindow: Adding window ${window.get_id()} as card window`);
     if (window === this.mainWindow) return;
     
-    this.removeFromCards(window);
+    // this.removeFromCards(window);
+
+    const index = this.cardWindows.indexOf(window);
+    if (index > -1) {
+      this.cardWindows.splice(index, 1);
+      // this.layoutCards();
+    }
+
     this.cardWindows.push(window);
     this.resizeToCard(window);
     this.layoutCards();
