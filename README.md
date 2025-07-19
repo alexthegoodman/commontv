@@ -1,5 +1,11 @@
 # CommonTV
 
+Features:
+
+- Window management designed for large screens
+
+Setup:
+
 `mkdir -p ~/.local/share/gnome-shell/extensions`
 `make`
 `make install`

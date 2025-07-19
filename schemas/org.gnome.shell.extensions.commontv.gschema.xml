@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <schemalist>
-  <schema id="org.gnome.shell.extensions.my-extension" path="/org/gnome/shell/extensions/my-extension/">
+  <schema id="org.gnome.shell.extensions.commontv" path="/org/gnome/shell/extensions/commontv/">
     <key name="padding-inner" type="i">
       <default>8</default>
       <summary>Inner padding</summary>

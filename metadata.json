@@ -5,6 +5,8 @@
     "url": "https://github.com/alexthegoodman/commontv",
     "settings-schema": "org.gnome.shell.extensions.commontv",
     "shell-version": [
-        "45"
+        "45",
+        "46", 
+        "47"
     ]
 }
