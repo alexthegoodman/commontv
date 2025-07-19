@@ -69,6 +69,13 @@ export default class CommonTVExtension extends Extension {
         this.onWindowDestroyed(window!);
       })
     );
+    
+    // Listen for global focus changes
+    this.displayConnections.push(
+      this.display.connect('notify::focus-window', (_display: Meta.Display) => {
+        this.onFocusChanged();
+      })
+    );
   }
 
   private disconnectSignals() {
@@ -96,10 +103,18 @@ export default class CommonTVExtension extends Extension {
     // Get current windows and organize them
     const windows = this.getAllUserWindows();
     if (windows.length > 0) {
-      this.setMainWindow(windows[0]);
-      for (let i = 1; i < windows.length; i++) {
-        this.addCardWindow(windows[i]);
-      }
+      // Use currently focused window as main, or first window if none focused
+      const focusedWindow = this.display?.get_focus_window();
+      const mainWindow = (focusedWindow && windows.includes(focusedWindow)) ? focusedWindow : windows[0];
+      
+      this.setMainWindow(mainWindow);
+      
+      // Add other windows as cards
+      windows.forEach(window => {
+        if (window !== mainWindow) {
+          this.addCardWindow(window);
+        }
+      });
     }
   }
 
@@ -109,12 +124,13 @@ export default class CommonTVExtension extends Extension {
     const workspace = global.workspace_manager.get_active_workspace();
     return workspace.list_windows().filter(window => 
       window.get_window_type() === Meta.WindowType.NORMAL &&
-      !window.is_skip_taskbar()
+      !window.is_skip_taskbar() &&
+      !window.minimized
     );
   }
 
   private onWindowCreated(window: Meta.Window) {
-    if (window.get_window_type() !== Meta.WindowType.NORMAL || window.is_skip_taskbar()) {
+    if (window.get_window_type() !== Meta.WindowType.NORMAL || window.is_skip_taskbar() || window.minimized) {
       return;
     }
     
@@ -141,6 +157,22 @@ export default class CommonTVExtension extends Extension {
     
     // Remove from cards
     this.removeFromCards(window);
+  }
+
+  private onFocusChanged() {
+    const focusedWindow = this.display?.get_focus_window();
+    
+    if (!focusedWindow || 
+        focusedWindow.get_window_type() !== Meta.WindowType.NORMAL ||
+        focusedWindow.is_skip_taskbar() ||
+        focusedWindow.minimized) {
+      return;
+    }
+    
+    // If focused window is different from current main window, switch to it
+    if (focusedWindow !== this.mainWindow) {
+      this.setMainWindow(focusedWindow);
+    }
   }
 
   // Utility method to cycle to next card window
