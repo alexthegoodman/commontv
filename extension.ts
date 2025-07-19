@@ -29,6 +29,7 @@ export default class CommonTVExtension extends Extension {
   private displayConnections: number[] = [];
   private windowManagerConnections: number[] = [];
   private keybindingIds: string[] = [];
+  private focusTimeout: number | null = null;
 
   enable() {
     this.gsettings = this.getSettings();
@@ -41,6 +42,12 @@ export default class CommonTVExtension extends Extension {
   }
 
   disable() {
+    // Clean up focus timeout
+    if (this.focusTimeout) {
+      GLib.source_remove(this.focusTimeout);
+      this.focusTimeout = null;
+    }
+    
     this.disconnectSignals();
     this.removeKeybindings();
     this.restoreAllWindows();
@@ -170,19 +177,27 @@ export default class CommonTVExtension extends Extension {
   }
 
   private onFocusChanged() {
-    const focusedWindow = this.display?.get_focus_window();
-    
-    if (!focusedWindow || 
-        focusedWindow.get_window_type() !== Meta.WindowType.NORMAL ||
-        focusedWindow.is_skip_taskbar() ||
-        focusedWindow.minimized) {
-      return;
+    // Add a small delay to let focus settle and prevent conflicts
+    if (this.focusTimeout) {
+      GLib.source_remove(this.focusTimeout);
     }
     
-    // If focused window is different from current main window, switch to it
-    if (focusedWindow !== this.mainWindow) {
+    this.focusTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+      const focusedWindow = this.display?.get_focus_window();
+      
+      if (!focusedWindow || 
+          focusedWindow.get_window_type() !== Meta.WindowType.NORMAL ||
+          focusedWindow.is_skip_taskbar() ||
+          focusedWindow.minimized ||
+          focusedWindow === this.mainWindow) {
+        this.focusTimeout = null;
+        return GLib.SOURCE_REMOVE;
+      }
+      
       this.setMainWindow(focusedWindow);
-    }
+      this.focusTimeout = null;
+      return GLib.SOURCE_REMOVE;
+    });
   }
 
   // Utility method to cycle to next card window
@@ -302,8 +317,11 @@ export default class CommonTVExtension extends Extension {
       );
       
       currentX += this.CARD_WIDTH + this.CARD_MARGIN;
-      
-      // Connect click handler to promote card to main view
+    });
+    
+    // Connect click handlers for all card windows after layout
+    // This prevents duplicate connections during frequent layout calls
+    this.cardWindows.forEach(window => {
       this.connectCardClickHandler(window);
     });
   }
@@ -316,19 +334,8 @@ export default class CommonTVExtension extends Extension {
       return; // Already has handlers
     }
     
-    // Connect multiple interaction methods for promoting cards to main view
-    
-    // Focus-based promotion (when user clicks/focuses the card window)
-    const focusId = window.connect('focus', () => {
-      if (this.cardWindows.includes(window)) {
-        this.setMainWindow(window);
-      }
-    });
-    
-    // Store the connection ID to clean up later
-    this.storeConnectionId(window, focusId);
-    
-    // Also handle button press events for more direct interaction
+    // Only use button press events to avoid conflicts with global focus handler
+    // Remove the redundant focus listener that conflicts with global focus handling
     const buttonPressId = window.connect('notify::appears-focused', () => {
       if (window.appears_focused && this.cardWindows.includes(window)) {
         this.setMainWindow(window);
