@@ -34,12 +34,15 @@ export default class CommonTVExtension extends Extension {
   private keybindingIds: string[] = [];
   private focusTimeout: number | null = null;
   private statusButton?: PanelMenu.Button;
+  private debugLogs: string[] = [];
+  private readonly MAX_LOGS = 5;
 
   enable() {
     this.gsettings = this.getSettings();
     this.windowTracker = Shell.WindowTracker.get_default();
     this.display = global.display;
     
+    this.logDebug('Extension enabled - Starting CommonTV debug logging');
     this.connectSignals();
     this.setupKeybindings();
     this.createStatusIndicator();
@@ -117,6 +120,7 @@ export default class CommonTVExtension extends Extension {
   }
 
   private redetermineLayout() {
+    this.logDebug(`redetermineLayout: Starting layout redetermination`);
     // Get current windows and organize them
     const windows = this.getAllUserWindows();
     if (windows.length > 0) {
@@ -260,6 +264,7 @@ export default class CommonTVExtension extends Extension {
   }
 
   private setMainWindow(window: Meta.Window) {
+    this.logDebug(`setMainWindow: Setting window ${window.get_id()} as main window`);
     if (this.mainWindow === window) return;
     
     // Store current main window as card if exists
@@ -273,6 +278,7 @@ export default class CommonTVExtension extends Extension {
   }
 
   private addCardWindow(window: Meta.Window) {
+    this.logDebug(`addCardWindow: Adding window ${window.get_id()} as card window`);
     if (window === this.mainWindow) return;
     
     this.removeFromCards(window);
@@ -303,7 +309,10 @@ export default class CommonTVExtension extends Extension {
     mainRect.height = workArea.height - this.CARD_HEIGHT - (this.MAIN_MARGIN * 3);
     
     this.storeOriginalGeometry(window);
+    
+    this.logDebug(`resizeToMainView: About to resize window ${window.get_id()} to Main (${mainRect.width}x${mainRect.height} at ${mainRect.x},${mainRect.y})`);
     window.move_resize_frame(false, mainRect.x, mainRect.y, mainRect.width, mainRect.height);
+    this.logDebug(`resizeToMainView: Completed move_resize_frame call for window ${window.get_id()}`);
     
     const windowId = window.get_id();
     const existingState = this.windowStates.get(windowId);
@@ -327,6 +336,7 @@ export default class CommonTVExtension extends Extension {
   }
 
   private layoutCards() {
+    this.logDebug(`layoutCards: Starting layout of ${this.cardWindows.length} card windows`);
     const monitor = this.display?.get_current_monitor();
     if (!monitor) return;
     
@@ -336,6 +346,7 @@ export default class CommonTVExtension extends Extension {
     let currentX = workArea.x + this.CARD_MARGIN;
     
     this.cardWindows.forEach((window, index) => {
+      this.logDebug(`layoutCards: About to resize card window ${window.get_id()} (index ${index}) to (${this.CARD_WIDTH}x${this.CARD_HEIGHT} at ${currentX},${cardRowY})`);
       window.move_resize_frame(
         false,
         currentX,
@@ -343,6 +354,7 @@ export default class CommonTVExtension extends Extension {
         this.CARD_WIDTH,
         this.CARD_HEIGHT
       );
+      this.logDebug(`layoutCards: Completed move_resize_frame for card window ${window.get_id()}`);
       
       currentX += this.CARD_WIDTH + this.CARD_MARGIN;
     });
@@ -467,8 +479,10 @@ export default class CommonTVExtension extends Extension {
   }
 
   private restoreAllWindows() {
+    this.logDebug(`restoreAllWindows: Starting restoration of ${this.windowStates.size} windows`);
     this.windowStates.forEach((state) => {
       const { window, originalGeometry } = state;
+      this.logDebug(`restoreAllWindows: About to restore window ${window.get_id()} to original (${originalGeometry.width}x${originalGeometry.height} at ${originalGeometry.x},${originalGeometry.y})`);
       window.move_resize_frame(
         false,
         originalGeometry.x,
@@ -476,14 +490,16 @@ export default class CommonTVExtension extends Extension {
         originalGeometry.width,
         originalGeometry.height
       );
+      this.logDebug(`restoreAllWindows: Completed restoration for window ${window.get_id()}`);
     });
+    // this.logDebug(`restoreAllWindows: Finished restoring all windows`);
   }
 
   private createStatusIndicator() {
     this.statusButton = new PanelMenu.Button(0.0, 'CommonTV', false);
     
     const label = new St.Label({
-      text: 'CommonTV: No window',
+      text: 'CommonTV: Debug Ready',
       style_class: 'panel-status-indicator-label',
       y_align: Clutter.ActorAlign.CENTER
     });
@@ -499,14 +515,7 @@ export default class CommonTVExtension extends Extension {
     const label = this.statusButton.get_child_at_index(0) as St.Label;
     if (!label) return;
     
-    const focusedWindow = this.display?.get_focus_window();
-    if (focusedWindow && focusedWindow.get_window_type() === Meta.WindowType.NORMAL) {
-      const title = focusedWindow.get_title() || 'Unknown';
-      const appName = this.windowTracker?.get_window_app(focusedWindow)?.get_name() || 'Unknown App';
-      label.set_text(`CommonTV: ${appName} - ${title}`);
-    } else {
-      label.set_text('CommonTV: No window');
-    }
+    label.set_text(this.formatDebugStatus());
   }
 
   private removeStatusIndicator() {
@@ -514,5 +523,28 @@ export default class CommonTVExtension extends Extension {
       this.statusButton.destroy();
       this.statusButton = undefined;
     }
+  }
+
+  private logDebug(message: string) {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = `[${timestamp}] ${message}`;
+    
+    this.debugLogs.push(logEntry);
+    if (this.debugLogs.length > this.MAX_LOGS) {
+      this.debugLogs = this.debugLogs.slice(-this.MAX_LOGS);
+    }
+    
+    console.log(`CommonTV Debug: ${logEntry}`);
+    this.updateStatusIndicator();
+  }
+
+  private formatDebugStatus(): string {
+    if (this.debugLogs.length === 0) {
+      return 'CommonTV: No debug logs';
+    }
+    
+    const latestLog = this.debugLogs[this.debugLogs.length - 1];
+    const logCount = this.debugLogs.length;
+    return `CommonTV: [${logCount}] ${latestLog}`;
   }
 }
