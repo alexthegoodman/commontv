@@ -26,7 +26,9 @@ export default class CommonTVExtension extends Extension {
   private readonly CARD_MARGIN = 10;
   private readonly MAIN_MARGIN = 20;
   
-  private signalConnections: number[] = [];
+  private displayConnections: number[] = [];
+  private windowManagerConnections: number[] = [];
+  private keybindingIds: string[] = [];
 
   enable() {
     this.gsettings = this.getSettings();
@@ -34,11 +36,13 @@ export default class CommonTVExtension extends Extension {
     this.display = global.display;
     
     this.connectSignals();
+    this.setupKeybindings();
     this.initializeLayout();
   }
 
   disable() {
     this.disconnectSignals();
+    this.removeKeybindings();
     this.restoreAllWindows();
     this.gsettings = undefined;
     this.windowTracker = undefined;
@@ -52,29 +56,14 @@ export default class CommonTVExtension extends Extension {
     if (!this.display) return;
     
     // Listen for new windows
-    this.signalConnections.push(
+    this.displayConnections.push(
       this.display.connect('window-created', (_display: Meta.Display, window: Meta.Window) => {
         this.onWindowCreated(window);
       })
     );
     
-    // Listen for window state changes
-    this.signalConnections.push(
-      global.window_manager.connect('minimize', (_wm: Shell.WM, actor: Meta.WindowActor) => {
-        const window = actor.get_meta_window();
-        this.onWindowMinimized(window!);
-      })
-    );
-    
-    this.signalConnections.push(
-      global.window_manager.connect('unminimize', (_wm: Shell.WM, actor: Meta.WindowActor) => {
-        const window = actor.get_meta_window();
-        this.onWindowUnminimized(window!);
-      })
-    );
-    
     // Listen for window destruction
-    this.signalConnections.push(
+    this.windowManagerConnections.push(
       global.window_manager.connect('destroy', (_wm: Shell.WM, actor: Meta.WindowActor) => {
         const window = actor.get_meta_window();
         this.onWindowDestroyed(window!);
@@ -83,13 +72,19 @@ export default class CommonTVExtension extends Extension {
   }
 
   private disconnectSignals() {
-    // Disconnect global signals
-    this.signalConnections.forEach(id => {
+    // Disconnect display signals
+    this.displayConnections.forEach(id => {
       if (this.display) {
         this.display.disconnect(id);
       }
     });
-    this.signalConnections = [];
+    this.displayConnections = [];
+    
+    // Disconnect window manager signals
+    this.windowManagerConnections.forEach(id => {
+      global.window_manager.disconnect(id);
+    });
+    this.windowManagerConnections = [];
     
     // Disconnect all window-specific signals
     this.windowStates.forEach((state, windowId) => {
@@ -127,15 +122,6 @@ export default class CommonTVExtension extends Extension {
     this.addCardWindow(window);
   }
 
-  private onWindowMinimized(window: Meta.Window) {
-    // Override minimize behavior - convert to card instead
-    window.unminimize();
-    this.addCardWindow(window);
-  }
-
-  private onWindowUnminimized(window: Meta.Window) {
-    // Handle unminimize if needed
-  }
 
   private onWindowDestroyed(window: Meta.Window) {
     const windowId = window.get_id();
@@ -234,23 +220,23 @@ export default class CommonTVExtension extends Extension {
     this.storeOriginalGeometry(window);
     window.move_resize_frame(false, mainRect.x, mainRect.y, mainRect.width, mainRect.height);
     
-    const state: WindowState = {
-      window,
-      originalGeometry: window.get_frame_rect(),
-      state: 'main'
-    };
-    this.windowStates.set(window.get_id(), state);
+    const windowId = window.get_id();
+    const existingState = this.windowStates.get(windowId);
+    if (existingState) {
+      // Update state but preserve original geometry
+      existingState.state = 'main';
+    }
   }
 
   private resizeToCard(window: Meta.Window) {
     this.storeOriginalGeometry(window);
     
-    const state: WindowState = {
-      window,
-      originalGeometry: window.get_frame_rect(),
-      state: 'card'
-    };
-    this.windowStates.set(window.get_id(), state);
+    const windowId = window.get_id();
+    const existingState = this.windowStates.get(windowId);
+    if (existingState) {
+      // Update state but preserve original geometry
+      existingState.state = 'card';
+    }
     
     // Card positioning will be handled by layoutCards()
   }
@@ -281,6 +267,13 @@ export default class CommonTVExtension extends Extension {
   }
 
   private connectCardClickHandler(window: Meta.Window) {
+    // Check if this window already has click handlers to avoid duplicates
+    const windowId = window.get_id();
+    const state = this.windowStates.get(windowId);
+    if (state && (state as any).hasClickHandlers) {
+      return; // Already has handlers
+    }
+    
     // Connect multiple interaction methods for promoting cards to main view
     
     // Focus-based promotion (when user clicks/focuses the card window)
@@ -301,6 +294,11 @@ export default class CommonTVExtension extends Extension {
     });
     
     this.storeConnectionId(window, buttonPressId);
+    
+    // Mark that this window has click handlers
+    if (state) {
+      (state as any).hasClickHandlers = true;
+    }
   }
 
   private storeConnectionId(window: Meta.Window, connectionId: number) {
@@ -322,20 +320,73 @@ export default class CommonTVExtension extends Extension {
         window.disconnect(id);
       });
       (state as any).connectionIds = [];
+      (state as any).hasClickHandlers = false;
     }
   }
 
   private storeOriginalGeometry(window: Meta.Window) {
-    const state = this.windowStates.get(window.get_id());
-    if (!state) {
-      // Store original geometry if not already stored
+    const windowId = window.get_id();
+    const existingState = this.windowStates.get(windowId);
+    if (!existingState) {
+      // Store original geometry only once, before any modifications
       const originalGeometry = window.get_frame_rect();
-      this.windowStates.set(window.get_id(), {
+      this.windowStates.set(windowId, {
         window,
         originalGeometry,
         state: 'main'
       });
     }
+  }
+
+  private setupKeybindings() {
+    // Add keybinding to convert focused window to card
+    const cardKeybindingId = Main.wm.addKeybinding(
+      'convert-to-card',
+      this.gsettings!,
+      Meta.KeyBindingFlags.NONE,
+      Shell.ActionMode.NORMAL,
+      () => {
+        const focusedWindow = global.display.get_focus_window();
+        if (focusedWindow && focusedWindow.get_window_type() === Meta.WindowType.NORMAL) {
+          this.convertWindowToCard(focusedWindow);
+        }
+      }
+    );
+    this.keybindingIds.push('convert-to-card');
+    
+    // Add keybinding to convert focused window to main
+    const mainKeybindingId = Main.wm.addKeybinding(
+      'convert-to-main',
+      this.gsettings!,
+      Meta.KeyBindingFlags.NONE,
+      Shell.ActionMode.NORMAL,
+      () => {
+        const focusedWindow = global.display.get_focus_window();
+        if (focusedWindow && focusedWindow.get_window_type() === Meta.WindowType.NORMAL) {
+          this.setMainWindow(focusedWindow);
+        }
+      }
+    );
+    this.keybindingIds.push('convert-to-main');
+  }
+  
+  private removeKeybindings() {
+    this.keybindingIds.forEach(id => {
+      Main.wm.removeKeybinding(id);
+    });
+    this.keybindingIds = [];
+  }
+  
+  private convertWindowToCard(window: Meta.Window) {
+    if (window === this.mainWindow) {
+      // If converting main window to card, promote first card to main
+      if (this.cardWindows.length > 0) {
+        this.setMainWindow(this.cardWindows[0]);
+      } else {
+        this.mainWindow = undefined;
+      }
+    }
+    this.addCardWindow(window);
   }
 
   private restoreAllWindows() {

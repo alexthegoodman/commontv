@@ -11,5 +11,15 @@
       <summary>Animation</summary>
       <description>Whether to animate window movement/resizing</description>
     </key>
+    <key name="convert-to-card" type="as">
+      <default>['&lt;Super&gt;c']</default>
+      <summary>Convert window to card</summary>
+      <description>Keybinding to convert focused window to card view</description>
+    </key>
+    <key name="convert-to-main" type="as">
+      <default>['&lt;Super&gt;m']</default>
+      <summary>Convert window to main</summary>
+      <description>Keybinding to convert focused window to main view</description>
+    </key>
   </schema>
 </schemalist>
