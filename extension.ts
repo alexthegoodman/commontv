@@ -113,6 +113,10 @@ export default class CommonTVExtension extends Extension {
   }
 
   private initializeLayout() {
+    this.redetermineLayout();
+  }
+
+  private redetermineLayout() {
     // Get current windows and organize them
     const windows = this.getAllUserWindows();
     if (windows.length > 0) {
@@ -206,7 +210,19 @@ export default class CommonTVExtension extends Extension {
         return GLib.SOURCE_REMOVE;
       }
       
-      this.setMainWindow(focusedWindow);
+      // Check if the focused window is a tracked window or a new one
+      const windowId = focusedWindow.get_id();
+      const isTrackedWindow = this.windowStates.has(windowId);
+      
+      if (isTrackedWindow) {
+        // For existing tracked windows, just promote to main
+        this.setMainWindow(focusedWindow);
+      } else {
+        // For new windows not yet tracked, run full layout initialization
+        this.storeOriginalGeometry(focusedWindow);
+        this.redetermineLayout();
+      }
+      
       this.focusTimeout = null;
       return GLib.SOURCE_REMOVE;
     });
