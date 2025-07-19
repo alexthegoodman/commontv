@@ -345,13 +345,20 @@ export default class CommonTVExtension extends Extension {
   private layoutCards() {
     this.logDebug(`layoutCards: Starting layout of ${this.cardWindows.length} card windows`);
     const monitor = this.display?.get_current_monitor();
-    if (!monitor) return;
+    if (monitor == null) {
+      this.logDebug('layoutCards: No monitor found, exiting early');
+      return;
+    }
+
+    this.logDebug('layoutCards: Monitor found, proceeding');
     
     const workArea = global.workspace_manager.get_active_workspace().get_work_area_for_monitor(monitor);
     const cardRowY = workArea.y + workArea.height - this.CARD_HEIGHT - this.MAIN_MARGIN;
     
     let currentX = workArea.x + this.CARD_MARGIN;
     
+    this.logDebug('layoutCards: Workspace found, proceeding with layout');
+
     this.cardWindows.forEach((window, index) => {
       this.logDebug(`layoutCards: About to resize card window ${window.get_id()} (index ${index}) to (${this.CARD_WIDTH}x${this.CARD_HEIGHT} at ${currentX},${cardRowY})`);
       window.move_resize_frame(
