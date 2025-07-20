@@ -227,12 +227,13 @@ export default class CommonTVExtension extends Extension {
       if (isTrackedWindow) {
         // For existing tracked windows, maintain their current state
         // Don't automatically promote to main - let explicit actions handle promotion
-        return GLib.SOURCE_REMOVE;
+        // return GLib.SOURCE_REMOVE;
       } else {
         // For new windows not yet tracked, run full layout initialization
         this.storeOriginalGeometry(focusedWindow);
-        this.redetermineLayout();
       }
+
+      this.redetermineLayout();
       
       this.focusTimeout = null;
       return GLib.SOURCE_REMOVE;
