@@ -171,16 +171,8 @@ export default class CommonTVExtension extends Extension {
     // Initialize window state tracking
     this.storeOriginalGeometry(window);
     
-    // Check if this new window has focus or should become main window
-    const focusedWindow = this.display?.get_focus_window();
-    const shouldBeMain = (focusedWindow === window) || (!this.mainWindow);
-    
-    if (shouldBeMain) {
-      this.setMainWindow(window);
-    } else {
-      this.addCardWindow(window);
-      this.layoutCards(); // Reposition existing cards to accommodate new card
-    }
+    // Ensure new window gets focus so focus handler calls redetermineLayout
+    window.focus(global.get_current_time());
     
     this.updateStatusIndicator();
   }
