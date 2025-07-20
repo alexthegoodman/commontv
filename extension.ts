@@ -389,9 +389,9 @@ export default class CommonTVExtension extends Extension {
     
     // Connect click handlers for all card windows after layout
     // This prevents duplicate connections during frequent layout calls
-    this.cardWindows.forEach(window => {
-      this.connectCardClickHandler(window);
-    });
+    // this.cardWindows.forEach(window => {
+    //   this.connectCardClickHandler(window);
+    // });
   }
 
   private connectCardClickHandler(window: Meta.Window) {
