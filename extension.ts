@@ -179,6 +179,7 @@ export default class CommonTVExtension extends Extension {
       this.setMainWindow(window);
     } else {
       this.addCardWindow(window);
+      this.layoutCards(); // Reposition existing cards to accommodate new card
     }
     
     this.updateStatusIndicator();
