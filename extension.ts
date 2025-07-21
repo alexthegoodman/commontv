@@ -25,8 +25,8 @@ export default class CommonTVExtension extends Extension {
   private isLayoutInProgress = false;
   
   // Layout constants
-  private readonly CARD_HEIGHT = 180;
-  private readonly CARD_WIDTH = 320;
+  private readonly CARD_HEIGHT = 360; // 180 is rather thin, hard to see content
+  private readonly CARD_WIDTH = 400;
   private readonly CARD_MARGIN = 10;
   private readonly MAIN_MARGIN = 20;
   
