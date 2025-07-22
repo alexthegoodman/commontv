@@ -1,0 +1,13 @@
+{
+  "name": "CommonTV Futuristic",
+  "description": "A futuristic cyberpunk theme optimized for large screen TV viewing with enhanced readability and touchpad navigation. Features cyan/blue color scheme with glowing effects, larger UI elements, and smooth animations.",
+  "shell-theme": true,
+  "version": "1.0.0",
+  "author": "CommonTV",
+  "url": "https://github.com/alexthegoodman/commontv",
+  "license": "MIT",
+  "tags": ["dark", "futuristic", "tv", "cyberpunk", "blue", "glow"],
+  "compatibility": {
+    "gnome-shell": ["45", "46", "47"]
+  }
+}
