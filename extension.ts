@@ -48,7 +48,7 @@ export default class CommonTVExtension extends Extension {
     this.logDebug('Extension enabled - Starting CommonTV debug logging');
     
     // Initialize theme manager
-    this.themeManager = new ThemeManager(this.path);
+    this.themeManager = new ThemeManager(this.path, true);
     this.initializeTheme();
     
     this.connectSignals();
@@ -533,11 +533,14 @@ export default class CommonTVExtension extends Extension {
   private createStatusIndicator() {
     this.statusButton = new PanelMenu.Button(0.0, 'CommonTV', false);
     
-    const label = this.themeManager?.createThemedLabel('CommonTV: Debug Ready', 'small') || new St.Label({
-      text: 'CommonTV: Debug Ready',
-      style_class: 'panel-status-indicator-label',
-      y_align: Clutter.ActorAlign.CENTER
-    });
+    let label = this.themeManager?.createThemedLabel('CommonTV: Debug Ready', 'small');
+    if (!label) {
+      label = new St.Label({
+        text: 'CommonTV: Debug Ready',
+        style_class: 'panel-status-indicator-label',
+        y_align: Clutter.ActorAlign.CENTER
+      });
+    }
     
     // Add theme-specific styling to the status indicator
     if (this.themeManager?.getCurrentTheme()?.name !== 'default') {

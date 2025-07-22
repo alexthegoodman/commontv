@@ -1,6 +1,5 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import St from 'gi://St';
 
 export interface Theme {
   name: string;
@@ -13,11 +12,13 @@ export interface Theme {
 
 export class ThemeManager {
   private currentTheme?: Theme;
-  private appliedStyleSheets: Set<St.Theme> = new Set();
+  private appliedStyleSheets: Set<any> = new Set();
   private themesPath: string;
+  private isShellContext: boolean = false;
 
-  constructor(extensionPath: string) {
+  constructor(extensionPath: string, isShellContext: boolean = false) {
     this.themesPath = GLib.build_filenamev([extensionPath, 'themes']);
+    this.isShellContext = isShellContext;
   }
 
   getAvailableThemes(): Theme[] {
@@ -43,8 +44,11 @@ export class ThemeManager {
     return themes.filter(theme => {
       if (theme.cssFile === '') return true; // Default theme
       const cssPath = GLib.build_filenamev([this.themesPath, theme.cssFile]);
+      console.log(`CommonTV: Checking theme file: ${cssPath}`);
       const file = Gio.File.new_for_path(cssPath);
-      return file.query_exists(null);
+      const exists = file.query_exists(null);
+      console.log(`CommonTV: Theme ${theme.name} exists: ${exists}`);
+      return exists;
     });
   }
 
@@ -87,6 +91,7 @@ export class ThemeManager {
       }
 
       const cssContent = new TextDecoder().decode(contents);
+      console.log(`CommonTV: Loaded CSS content, length: ${cssContent.length}`);
       this.applyCSS(cssContent);
       
       this.currentTheme = theme;
@@ -100,7 +105,16 @@ export class ThemeManager {
   }
 
   private applyCSS(cssContent: string): void {
+    if (!this.isShellContext) {
+      console.log('CommonTV: CSS application skipped - not in shell context');
+      return;
+    }
+    
+    console.log('CommonTV: Applying CSS to shell theme...');
     try {
+      // Dynamically import St only in shell context
+      const St = imports.gi.St;
+      
       // Create a temporary CSS file in user cache
       const cacheDir = GLib.get_user_cache_dir();
       const tempDir = GLib.build_filenamev([cacheDir, 'commontv']);
@@ -121,6 +135,7 @@ export class ThemeManager {
       const theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
       theme.load_stylesheet(tempFile);
       this.appliedStyleSheets.add(theme);
+      console.log('CommonTV: CSS stylesheet loaded successfully');
       
     } catch (error) {
       console.error('CommonTV: Error applying CSS:', error);
@@ -146,8 +161,8 @@ export class ThemeManager {
     this.currentTheme = undefined;
   }
 
-  addThemeClasses(actor: St.Widget, windowType: 'main' | 'card'): void {
-    if (!this.currentTheme || this.currentTheme.name === 'default') {
+  addThemeClasses(actor: any, windowType: 'main' | 'card'): void {
+    if (!this.currentTheme || this.currentTheme.name === 'default' || !this.isShellContext) {
       return;
     }
 
@@ -169,7 +184,12 @@ export class ThemeManager {
     }
   }
 
-  createThemedButton(text: string, onClick?: () => void): St.Button {
+  createThemedButton(text: string, onClick?: () => void): any {
+    if (!this.isShellContext) {
+      return null;
+    }
+    
+    const St = imports.gi.St;
     const button = new St.Button({
       label: text,
       style_class: 'commontv-button commontv-focusable',
@@ -184,7 +204,12 @@ export class ThemeManager {
     return button;
   }
 
-  createThemedLabel(text: string, size: 'small' | 'medium' | 'large' = 'medium'): St.Label {
+  createThemedLabel(text: string, size: 'small' | 'medium' | 'large' = 'medium'): any {
+    if (!this.isShellContext) {
+      return null;
+    }
+    
+    const St = imports.gi.St;
     const label = new St.Label({
       text: text,
       style_class: `commontv-text-${size}`

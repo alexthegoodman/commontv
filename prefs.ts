@@ -22,7 +22,7 @@ export default class CommonTVPreferences extends ExtensionPreferences {
     });
     page.add(themeGroup);
 
-    const themeManager = new ThemeManager(this.path);
+    const themeManager = new ThemeManager(this.path, false);
     const availableThemes = themeManager.getAvailableThemes();
     
     const themeModel = new Gtk.StringList();

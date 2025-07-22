@@ -1,272 +1,151 @@
 /* TV Futuristic Theme for CommonTV GNOME Extension
  * Optimized for large screen TV viewing with touchpad navigation
- * Larger buttons, text, and futuristic styling for distance viewing
+ * Targets actual GNOME Shell UI elements
  */
 
-/* Main Window Styling */
-.commontv-main-window {
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
-  border: 2px solid #00d4ff;
-  border-radius: 16px;
-  box-shadow: 
-    0 0 30px rgba(0, 212, 255, 0.3),
-    inset 0 0 30px rgba(0, 212, 255, 0.1);
-  backdrop-filter: blur(10px);
+/* Enhanced Panel Status Indicator */
+#panel .panel-status-indicator-label {
+  color: #00d4ff !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 8px rgba(0, 212, 255, 0.8) !important;
+  background: linear-gradient(90deg, rgba(10, 10, 10, 0.9), rgba(26, 26, 46, 0.9)) !important;
+  border: 1px solid #00aaff !important;
+  border-radius: 8px !important;
+  padding: 6px 16px !important;
+  box-shadow: 0 0 15px rgba(0, 170, 255, 0.4) !important;
+  margin: 2px !important;
 }
 
-/* Card Window Styling */
-.commontv-card-window {
-  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #0f3460 100%);
-  border: 1px solid #00aaff;
-  border-radius: 12px;
-  box-shadow: 
-    0 0 20px rgba(0, 170, 255, 0.2),
-    inset 0 0 20px rgba(0, 170, 255, 0.05);
-  backdrop-filter: blur(8px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.commontv-card-window:hover {
-  border-color: #00d4ff;
-  box-shadow: 
-    0 0 35px rgba(0, 212, 255, 0.4),
-    inset 0 0 25px rgba(0, 212, 255, 0.1);
-  transform: scale(1.02);
-}
-
-.commontv-card-window:focus {
-  border-color: #00ffff;
-  box-shadow: 
-    0 0 40px rgba(0, 255, 255, 0.5),
-    inset 0 0 30px rgba(0, 255, 255, 0.15);
-  transform: scale(1.05);
-}
-
-/* Panel Status Indicator */
-.commontv-panel-status {
-  background: linear-gradient(90deg, #0a0a0a, #1a1a2e);
-  color: #00d4ff;
-  border: 1px solid #00aaff;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 16px;
-  font-weight: 600;
-  text-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
-  box-shadow: 
-    0 0 15px rgba(0, 170, 255, 0.3),
-    inset 0 0 10px rgba(0, 170, 255, 0.1);
-}
-
-/* Button Styling - Larger for TV/touchpad use */
-.commontv-button {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  color: #00d4ff;
-  border: 2px solid #00aaff;
-  border-radius: 12px;
-  padding: 16px 32px;
-  font-size: 20px;
-  font-weight: 700;
-  min-width: 120px;
-  min-height: 60px;
-  text-shadow: 0 0 8px rgba(0, 212, 255, 0.8);
-  box-shadow: 
-    0 0 20px rgba(0, 170, 255, 0.3),
-    inset 0 0 15px rgba(0, 170, 255, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-}
-
-.commontv-button:hover {
-  background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
-  border-color: #00d4ff;
-  color: #ffffff;
-  box-shadow: 
-    0 0 30px rgba(0, 212, 255, 0.5),
-    inset 0 0 20px rgba(0, 212, 255, 0.15);
-  transform: translateY(-2px) scale(1.05);
-}
-
-.commontv-button:active {
-  background: linear-gradient(135deg, #0f3460 0%, #003d82 100%);
-  border-color: #00ffff;
-  box-shadow: 
-    0 0 35px rgba(0, 255, 255, 0.6),
-    inset 0 0 25px rgba(0, 255, 255, 0.2);
-  transform: translateY(0px) scale(0.98);
-}
-
-/* Large Text for Distance Viewing */
-.commontv-text-large {
-  font-size: 24px;
-  font-weight: 600;
-  color: #00d4ff;
-  text-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
-  line-height: 1.4;
-}
-
-.commontv-text-medium {
-  font-size: 18px;
-  font-weight: 500;
-  color: #00aaff;
-  text-shadow: 0 0 8px rgba(0, 170, 255, 0.6);
-  line-height: 1.3;
-}
-
-.commontv-text-small {
-  font-size: 16px;
-  font-weight: 400;
-  color: #0088cc;
-  text-shadow: 0 0 6px rgba(0, 136, 204, 0.5);
-  line-height: 1.2;
-}
-
-/* Animated Elements */
-.commontv-glow-pulse {
-  animation: glowPulse 2s ease-in-out infinite alternate;
-}
-
-@keyframes glowPulse {
-  from {
-    box-shadow: 
-      0 0 20px rgba(0, 170, 255, 0.3),
-      inset 0 0 15px rgba(0, 170, 255, 0.1);
-  }
-  to {
-    box-shadow: 
-      0 0 35px rgba(0, 212, 255, 0.5),
-      inset 0 0 25px rgba(0, 212, 255, 0.15);
-  }
-}
-
-/* Focus Indicators for Touchpad Navigation */
-.commontv-focusable:focus {
-  outline: 3px solid #00ffff;
-  outline-offset: 4px;
-  box-shadow: 
-    0 0 0 6px rgba(0, 255, 255, 0.3),
-    0 0 40px rgba(0, 255, 255, 0.5);
-}
-
-/* Window Title Bars */
-.commontv-titlebar {
-  background: linear-gradient(90deg, #0a0a0a, #1a1a2e, #0a0a0a);
-  color: #00d4ff;
-  font-size: 18px;
-  font-weight: 700;
-  padding: 12px 20px;
-  border-bottom: 1px solid #00aaff;
-  text-shadow: 0 0 8px rgba(0, 212, 255, 0.8);
-}
-
-/* Card Overlay Information */
-.commontv-card-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
-  color: #00d4ff;
-  padding: 16px;
-  font-size: 16px;
-  font-weight: 600;
-  text-shadow: 0 0 8px rgba(0, 212, 255, 0.8);
-}
-
-/* Responsive Scaling for Different Screen Sizes */
-@media (min-width: 1920px) {
-  .commontv-button {
-    font-size: 24px;
-    padding: 20px 40px;
-    min-width: 150px;
-    min-height: 80px;
-  }
-  
-  .commontv-text-large {
-    font-size: 32px;
-  }
-  
-  .commontv-text-medium {
-    font-size: 24px;
-  }
-  
-  .commontv-text-small {
-    font-size: 20px;
-  }
-}
-
-@media (min-width: 3840px) {
-  .commontv-button {
-    font-size: 32px;
-    padding: 28px 56px;
-    min-width: 200px;
-    min-height: 100px;
-  }
-  
-  .commontv-text-large {
-    font-size: 48px;
-  }
-  
-  .commontv-text-medium {
-    font-size: 36px;
-  }
-  
-  .commontv-text-small {
-    font-size: 28px;
-  }
-}
-
-/* Special Effects for Futuristic Look */
-.commontv-holographic {
-  position: relative;
-  overflow: hidden;
-}
-
-.commontv-holographic::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent,
-    rgba(0, 212, 255, 0.1),
-    transparent
-  );
-  transform: rotate(45deg);
-  animation: holographicScan 3s linear infinite;
-}
-
-@keyframes holographicScan {
-  0% {
-    transform: translateX(-100%) translateY(-100%) rotate(45deg);
-  }
-  100% {
-    transform: translateX(100%) translateY(100%) rotate(45deg);
-  }
-}
-
-/* Grid Pattern Background for Futuristic Feel */
-.commontv-grid-bg {
-  background-image: 
-    linear-gradient(rgba(0, 170, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 170, 255, 0.1) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-
-/* Window Manager Specific Styles */
+/* Window Thumbnails in Overview/Activities */
 .window-clone {
-  border-radius: 12px;
-  overflow: hidden;
+  border-radius: 12px !important;
+  border: 2px solid rgba(0, 170, 255, 0.6) !important;
+  box-shadow: 
+    0 0 20px rgba(0, 170, 255, 0.4) !important,
+    inset 0 0 10px rgba(0, 170, 255, 0.1) !important;
+  transition: all 0.3s ease !important;
 }
 
-.window-clone.commontv-main {
-  border: 3px solid #00d4ff;
-  box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+.window-clone:hover {
+  border-color: rgba(0, 212, 255, 0.9) !important;
+  box-shadow: 
+    0 0 30px rgba(0, 212, 255, 0.6) !important,
+    inset 0 0 15px rgba(0, 212, 255, 0.15) !important;
+  transform: scale(1.02) !important;
 }
 
-.window-clone.commontv-card {
-  border: 2px solid #00aaff;
-  box-shadow: 0 0 20px rgba(0, 170, 255, 0.3);
+/* Panel styling for futuristic look */
+#panel {
+  background: linear-gradient(to bottom, rgba(10, 10, 10, 0.95), rgba(26, 26, 46, 0.95)) !important;
+  border-bottom: 1px solid rgba(0, 170, 255, 0.3) !important;
+  box-shadow: 0 2px 15px rgba(0, 170, 255, 0.2) !important;
+}
+
+/* Hot corner styling */
+.hot-corner {
+  border: 2px solid rgba(0, 170, 255, 0.5) !important;
+  border-radius: 8px !important;
+  background: radial-gradient(circle, rgba(0, 170, 255, 0.2), transparent) !important;
+}
+
+/* Workspace thumbnails */
+.workspace-thumbnail {
+  border: 2px solid rgba(0, 170, 255, 0.4) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 15px rgba(0, 170, 255, 0.3) !important;
+}
+
+.workspace-thumbnail:hover {
+  border-color: rgba(0, 212, 255, 0.8) !important;
+  box-shadow: 0 0 25px rgba(0, 212, 255, 0.5) !important;
+}
+
+/* Application icons in dash */
+.dash .app-well-app {
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, rgba(15, 15, 35, 0.8), rgba(26, 26, 46, 0.8)) !important;
+  border: 1px solid rgba(0, 170, 255, 0.4) !important;
+  box-shadow: 0 0 10px rgba(0, 170, 255, 0.3) !important;
+}
+
+.dash .app-well-app:hover {
+  border-color: rgba(0, 212, 255, 0.8) !important;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.5) !important;
+  transform: scale(1.05) !important;
+}
+
+/* Search results styling */
+.search-section {
+  background: linear-gradient(135deg, rgba(10, 10, 10, 0.9), rgba(26, 26, 46, 0.9)) !important;
+  border: 1px solid rgba(0, 170, 255, 0.3) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 0 20px rgba(0, 170, 255, 0.2) !important;
+}
+
+.search-result {
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+}
+
+.search-result:hover, .search-result:focus {
+  background: linear-gradient(135deg, rgba(0, 170, 255, 0.2), rgba(0, 212, 255, 0.1)) !important;
+  border: 1px solid rgba(0, 212, 255, 0.5) !important;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
+}
+
+/* Notification styling */
+.notification-banner {
+  background: linear-gradient(135deg, rgba(10, 10, 10, 0.95), rgba(26, 26, 46, 0.95)) !important;
+  border: 1px solid rgba(0, 170, 255, 0.5) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 0 25px rgba(0, 170, 255, 0.4) !important;
+  color: #00d4ff !important;
+}
+
+/* Make text larger for TV viewing */
+.notification-banner .notification-body {
+  font-size: 16px !important;
+  color: #00aaff !important;
+}
+
+/* Calendar/clock styling */
+.clock-display {
+  color: #00d4ff !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  text-shadow: 0 0 8px rgba(0, 212, 255, 0.6) !important;
+}
+
+/* System menu styling */
+.aggregate-menu {
+  background: linear-gradient(135deg, rgba(10, 10, 10, 0.95), rgba(26, 26, 46, 0.95)) !important;
+  border: 1px solid rgba(0, 170, 255, 0.5) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 0 30px rgba(0, 170, 255, 0.4) !important;
+}
+
+/* Large text for better TV readability */
+.popup-menu-item {
+  font-size: 16px !important;
+  padding: 12px 16px !important;
+}
+
+.popup-menu-item:hover, .popup-menu-item:focus {
+  background: linear-gradient(90deg, rgba(0, 170, 255, 0.2), rgba(0, 212, 255, 0.1)) !important;
+  color: #ffffff !important;
+}
+
+/* Glowing animation for enhanced futuristic feel */
+@keyframes cyberpulse {
+  0% { box-shadow: 0 0 15px rgba(0, 170, 255, 0.3); }
+  50% { box-shadow: 0 0 25px rgba(0, 212, 255, 0.5); }
+  100% { box-shadow: 0 0 15px rgba(0, 170, 255, 0.3); }
+}
+
+/* Apply pulsing glow to key elements */
+#panel .panel-status-indicator-label,
+.window-clone,
+.workspace-thumbnail {
+  animation: cyberpulse 3s ease-in-out infinite !important;
 }
