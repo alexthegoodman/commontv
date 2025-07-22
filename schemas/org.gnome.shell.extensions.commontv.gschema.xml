@@ -21,5 +21,10 @@
       <summary>Convert window to main</summary>
       <description>Keybinding to convert focused window to main view</description>
     </key>
+    <key name="current-theme" type="s">
+      <default>'tv-futuristic'</default>
+      <summary>Current theme</summary>
+      <description>The currently active theme for CommonTV</description>
+    </key>
   </schema>
 </schemalist>

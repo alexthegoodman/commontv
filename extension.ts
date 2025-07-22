@@ -8,6 +8,7 @@ import Clutter from "gi://Clutter";
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
+import { ThemeManager } from './themes/theme-manager.js';
 
 interface WindowState {
   window: Meta.Window;
@@ -23,6 +24,7 @@ export default class CommonTVExtension extends Extension {
   private mainWindow?: Meta.Window;
   private cardWindows: Meta.Window[] = [];
   private isLayoutInProgress = false;
+  private themeManager?: ThemeManager;
   
   // Layout constants
   private readonly CARD_HEIGHT = 360; // 180 is rather thin, hard to see content
@@ -44,6 +46,11 @@ export default class CommonTVExtension extends Extension {
     this.display = global.display;
     
     this.logDebug('Extension enabled - Starting CommonTV debug logging');
+    
+    // Initialize theme manager
+    this.themeManager = new ThemeManager(this.path);
+    this.initializeTheme();
+    
     this.connectSignals();
     this.setupKeybindings();
     this.createStatusIndicator();
@@ -55,6 +62,12 @@ export default class CommonTVExtension extends Extension {
     if (this.focusTimeout) {
       GLib.source_remove(this.focusTimeout);
       this.focusTimeout = null;
+    }
+    
+    // Clean up theme manager
+    if (this.themeManager) {
+      this.themeManager.cleanup();
+      this.themeManager = undefined;
     }
     
     this.disconnectSignals();
@@ -520,11 +533,16 @@ export default class CommonTVExtension extends Extension {
   private createStatusIndicator() {
     this.statusButton = new PanelMenu.Button(0.0, 'CommonTV', false);
     
-    const label = new St.Label({
+    const label = this.themeManager?.createThemedLabel('CommonTV: Debug Ready', 'small') || new St.Label({
       text: 'CommonTV: Debug Ready',
       style_class: 'panel-status-indicator-label',
       y_align: Clutter.ActorAlign.CENTER
     });
+    
+    // Add theme-specific styling to the status indicator
+    if (this.themeManager?.getCurrentTheme()?.name !== 'default') {
+      label.add_style_class_name('commontv-panel-status');
+    }
     
     this.statusButton.add_child(label);
     Main.panel.addToStatusArea('commontv-indicator', this.statusButton);
@@ -568,5 +586,36 @@ export default class CommonTVExtension extends Extension {
     const latestLog = this.debugLogs[this.debugLogs.length - 1];
     const logCount = this.debugLogs.length;
     return `CommonTV: [${logCount}] ${latestLog}`;
+  }
+
+  private initializeTheme() {
+    if (!this.themeManager) return;
+    
+    // Get theme preference from settings, default to tv-futuristic
+    const savedTheme = this.gsettings?.get_string('current-theme') || 'tv-futuristic';
+    
+    this.logDebug(`Initializing theme: ${savedTheme}`);
+    
+    const success = this.themeManager.applyTheme(savedTheme);
+    if (!success) {
+      this.logDebug('Failed to apply saved theme, falling back to default');
+      this.themeManager.applyTheme('default');
+    }
+  }
+
+  private getAvailableThemes() {
+    return this.themeManager?.getAvailableThemes() || [];
+  }
+
+  private switchTheme(themeName: string) {
+    if (!this.themeManager) return false;
+    
+    const success = this.themeManager.applyTheme(themeName);
+    if (success) {
+      this.gsettings?.set_string('current-theme', themeName);
+      this.logDebug(`Switched to theme: ${themeName}`);
+      this.updateStatusIndicator();
+    }
+    return success;
   }
 }

@@ -2,8 +2,9 @@ import Gtk from 'gi://Gtk';
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import { ThemeManager } from './themes/theme-manager.js';
 
-export default class GnomeRectanglePreferences extends ExtensionPreferences {
+export default class CommonTVPreferences extends ExtensionPreferences {
   _settings?: Gio.Settings
 
   fillPreferencesWindow(window: Adw.PreferencesWindow): Promise<void> {
@@ -14,6 +15,45 @@ export default class GnomeRectanglePreferences extends ExtensionPreferences {
       iconName: 'dialog-information-symbolic',
     });
 
+    // Theme selection group
+    const themeGroup = new Adw.PreferencesGroup({
+      title: _('Theme'),
+      description: _('Choose a theme optimized for TV viewing'),
+    });
+    page.add(themeGroup);
+
+    const themeManager = new ThemeManager(this.path);
+    const availableThemes = themeManager.getAvailableThemes();
+    
+    const themeModel = new Gtk.StringList();
+    availableThemes.forEach(theme => {
+      themeModel.append(theme.displayName);
+    });
+
+    const themeRow = new Adw.ComboRow({
+      title: _('Theme'),
+      subtitle: _('Select theme for TV viewing experience'),
+      model: themeModel,
+    });
+
+    // Set initial selection
+    const currentTheme = this._settings!.get_string('current-theme');
+    const currentIndex = availableThemes.findIndex(theme => theme.name === currentTheme);
+    if (currentIndex >= 0) {
+      themeRow.set_selected(currentIndex);
+    }
+
+    // Handle theme changes
+    themeRow.connect('notify::selected', () => {
+      const selectedIndex = themeRow.get_selected();
+      const selectedTheme = availableThemes[selectedIndex];
+      if (selectedTheme) {
+        this._settings!.set_string('current-theme', selectedTheme.name);
+      }
+    });
+
+    themeGroup.add(themeRow);
+
     const animationGroup = new Adw.PreferencesGroup({
       title: _('Animation'),
       description: _('Configure move/resize animation'),
@@ -22,7 +62,7 @@ export default class GnomeRectanglePreferences extends ExtensionPreferences {
 
     const animationEnabled = new Adw.SwitchRow({
       title: _('Enabled'),
-      subtitle: _('Wether to animate windows'),
+      subtitle: _('Whether to animate windows'),
     });
     animationGroup.add(animationEnabled);
 
